@@ -8,20 +8,40 @@ static const char* SCRAPE_USAGE = "$ word_scrape <dictionary> <output file>";
 template<unsigned _wsize>
 class WordBuilder {
 public:
-	WordBuilder(): _len(0)
-	{}
+	WordBuilder(): _len(0), _state(false)
+	{
+		// Ensures clean memory
+		for(unsigned i - 0; i < _wsize; i++)
+			_word[i] = 0;
+	}
 	~WordBuilder(){}
 
 	const char* getWord() const { return _word; }
+
+	void stateOn() { _state = true; }
+	void stateOff() { _state = false; }
+
+	void append(const char ch) {
+		if(_len != _wize)
+			_word[_len++] = ch;
+	}
+
+	WordBuilder& operator<<(const char ch) {
+		append(ch);
+	}
 private:
 	char _word[_wsize];
 	unsigned _len;
+	bool _state;
 };
 
 
 static int scrapeWordsFromDict(const char* dst, const char* src)
 {
-
+	std::FILE* dstp;
+	std::FILE* srcp;
+	char lineBuffer[LINE_BUFFER_SIZE];
+	return 1;
 }
 
 
