@@ -27,6 +27,8 @@ public:
 	void stateOff() { _state = false; }
 	bool getState() const { return _state; }
 
+	unsigned getLength() const { return _len; }
+
 	void append(const char ch) {
 		if(_len != _wsize)
 			_word[_len++] = MAKE_LOWER_CHAR(ch);
@@ -71,20 +73,22 @@ static int scrapeWordsFromDict(const char* dst, const char* src)
 		const char* reader = lineBuffer;
 		while(*reader) {
 			if(wBuild.getState()) {
-				if(*reader == '\n') {
+				if(!std::isupper(*reader)) {
 					wBuild.append('\n'); // So words can be read line by line
 					wBuild.stateOff();
-					std::fputs(wBuild.getWord(), dstp);
-					wBuild.clean();
-				} else if(!std::isupper(*reader)) {
-					wBuild.stateOff();
+					// we don't want words less than 3 in length
+					if(wBuild.getLength() > 3)
+						std::fputs(wBuild.getWord(), dstp);
 					wBuild.clean();
 				} else {
 					wBuild.append(*reader); // builds the word.
 				}
 			} else {
-				if(*reader == '\n')
+				if(std::isupper(*reader) && reader[1] && std::isupper(reader[1])){
 					wBuild.stateOn();
+				    wBuild.append(*reader++);
+				    wBuild.append(*reader);
+				}
 			}
 		    reader++;
 		}
