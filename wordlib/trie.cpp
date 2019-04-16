@@ -40,8 +40,9 @@ void TrieManager::insert(TrieNode* trie, const char* string)
 				       traverse = traverse->childAt(indexKey);
 				       break;
 				case TrieState::End:
-				       traverse->setChildAt(new TrieNode(), indexKey);
-				       traverse->stateAt(indexKey) = TrieState::Part;
+				       if(traverse->childAt(indexKey) == nullptr)
+				       	       traverse->setChildAt(new TrieNode(), indexKey);
+				       //traverse->stateAt(indexKey) = TrieState::Part;
 				       traverse = traverse->childAt(indexKey);
 				       break;
 			}
@@ -54,6 +55,8 @@ void TrieManager::insert(TrieNode* trie, const char* string)
 				        traverse->stateAt(indexKey) = TrieState::End;
 				        break;
 				case TrieState::Part:
+				       traverse->stateAt(indexKey) = TrieState::End;
+				       return;
 				case TrieState::End:
 				       return;
 			}
@@ -90,6 +93,9 @@ void TrieManager::printWithPrefix(TrieNode* trie, const char* prefix, Word& word
               TrieManager::printWithPrefix(trie->childAt(*prefix), prefix + 1, word);
               return;
         case TrieState::End:
+              // End counts as part and end, not to overwrite direct words.
+              if(trie->childAt(*prefix) != nullptr)
+              	   TrieManager::printWithPrefix(trie->childAt(*prefix), prefix + 1, word);
               return; 
         case TrieState::Empty:
               return;
@@ -104,6 +110,8 @@ void TrieManager::printWithPrefix(TrieNode* trie, const char* prefix, Word& word
 				     break;
 				case TrieState::End:
 				     word.append(i);
+				     if(trie->childAt(*prefix) != nullptr)
+				     	TrieManager::printWithPrefix(trie->childAt(i), prefix, word);
 				     word.print();
 				     word.snip();
 				     break;

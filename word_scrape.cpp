@@ -35,8 +35,9 @@ static int scrapeWordsFromDict(const char* dst, const char* src)
 					wBuild.append('\n'); // So words can be read line by line
 					wBuild.stateOff();
 					// we don't want words less than 3 in length
-					if(wBuild.getLength() > 3)
+					if(wBuild.getLength() > 3) {
 						std::fputs(wBuild.getWord(), dstp);
+					}
 					wBuild.clean();
 				} else {
 					wBuild.append(*reader); // builds the word.
