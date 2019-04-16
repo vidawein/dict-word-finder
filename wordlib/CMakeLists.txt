@@ -3,4 +3,5 @@
 
 add_library(wordtool STATIC
      trie.cpp
+     word.cpp
 )

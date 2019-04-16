@@ -1,72 +1,28 @@
-#include <iostream>
-#include <climits>
- 
-// Implmentation of trie structure for checking membership of large set of strings
- 
-#define TRIE_SIZE SCHAR_MAX + 1
- 
-/**
- * enum to denote the state of a trie node.
- */
-struct TrieState
+#include "trie.h"
+
+
+void TrieNode::cleanChildren(TrieNode** child)
 {
-	enum Kind
-	{
-		Empty,
-		Part,
-		End
-	};
-};
- 
-class TrieNode
-{
-public:
-	static void cleanChildren(TrieNode** child)
-	{
 		for(size_t i = 0; i < TRIE_SIZE ; i++)
 			child[i] = nullptr;
-	}
-	TrieNode()
-	{
-		TrieNode::cleanChildren(_children);
-	}
-	~TrieNode()
-	{
-		for(size_t i = 0; i < TRIE_SIZE ; i++) 
-			delete _children[i];
-	}
-	// Trie is indexed with char type
-	TrieState::Kind& stateAt(char index)
-	{
-		return _states[index % TRIE_SIZE];
-	}
- 
-    // Trie is indexed with char type.
-	TrieNode* childAt(char index) const
-	{
-		return _children[index % TRIE_SIZE];
-	}
- 
-	void setChildAt(TrieNode* child, char index)
-	{
-		_children[index % TRIE_SIZE] = child;
-	}
- 
-	bool isEmptyAt(char index) const
-	{
-		return _children[index % TRIE_SIZE] == nullptr;
-	}
-private:
-	TrieNode* _children[TRIE_SIZE];
-	TrieState::Kind _states[TRIE_SIZE];
-};
- 
-// Used for manufacturing instances of tries, and inserting strings.
-class TrieManager
+}
+
+TrieNode::TrieNode()
 {
-public:
-	static void insert(TrieNode* trie, const char* string)
-	{
+	TrieNode::cleanChildren(_children);
+	for(size_t i = 0; i < TRIE_SIZE; i++)
+		_states[i] = TrieState::Empty;
+}
+
+TrieNode::~TrieNode()
+{
+	for(size_t i = 0; i < TRIE_SIZE ; i++) 
+		delete _children[i];
+}
+
+
+void TrieManager::insert(TrieNode* trie, const char* string)
+{
 		TrieNode* traverse = trie;
 		char indexKey;
 		// Does not insert anything if string is empty
@@ -84,6 +40,7 @@ public:
 				       traverse = traverse->childAt(indexKey);
 				       break;
 				case TrieState::End:
+				       traverse->setChildAt(new TrieNode(), indexKey);
 				       traverse->stateAt(indexKey) = TrieState::Part;
 				       traverse = traverse->childAt(indexKey);
 				       break;
@@ -100,9 +57,9 @@ public:
 				case TrieState::End:
 				       return;
 			}
-	}
- 
-	static bool contains(TrieNode* trie, const char* string)
+}
+
+bool TrieManager::contains(TrieNode* trie, const char* string)
 	{
 		TrieNode* traverse = trie;
 		while(*string)
@@ -121,40 +78,38 @@ public:
 			}
 		}
 		return false;
-	}
+}
 
-  static void printFirst(TrieNode* trie)
-  {
-    for(char i = 0; i < SCHAR_MAX; i++)
-    {
-      switch(trie->stateAt(i))
+void TrieManager::printWithPrefix(TrieNode* trie, const char* prefix, Word& word)
+{
+	if(*prefix) {
+	  word.append(*prefix);
+      switch(trie->stateAt(*prefix))
       {
         case TrieState::Part:
-              std::cout << i;
-              TrieManager::printFirst(trie->childAt(i));
+              TrieManager::printWithPrefix(trie->childAt(*prefix), prefix + 1, word);
               return;
         case TrieState::End:
-              std::cout << i << '\n';
               return; 
         case TrieState::Empty:
-              break;
+              return;
       }
-    }
-  }
-};
-
-
-
- 
-int main(int argc, char const *argv[])
-{
-	TrieNode* trie = new TrieNode();
-	TrieManager::insert(trie, "Foo!");
-	TrieManager::insert(trie, "Doo!");
-	TrieManager::insert(trie, "Food!");
-	TrieManager::insert(trie, "Aaaaaaa");
-	std::cout << "Contains Doo! " << TrieManager::contains(trie, "Doo!") << "\n";
-	TrieManager::printFirst(trie);
-	delete trie;
-	return 0;
-}
+	} else { //prefix is null, can start printing words
+		for(char i = 0; i < SCHAR_MAX; i++) {
+			switch(trie->stateAt(i)) {
+				case TrieState::Part:
+				     word.append(i);
+				     TrieManager::printWithPrefix(trie->childAt(i), prefix, word);
+				     word.snip();
+				     break;
+				case TrieState::End:
+				     word.append(i);
+				     word.print();
+				     word.snip();
+				     break;
+				case TrieState::Empty:
+				     break;
+			}
+		}
+	}
+ }
